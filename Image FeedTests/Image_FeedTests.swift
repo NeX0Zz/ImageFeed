@@ -1,13 +1,13 @@
 //
-//  ImageFeedTests.swift
-//  ImageFeedTests
+//  Image_FeedTests.swift
+//  Image FeedTests
 //
-//  Created by Денис Николаев on 01.02.2024.
+//  Created by Денис Николаев on 15.02.2024.
 //
 
 import XCTest
 
-final class ImageFeedTests: XCTestCase {
+final class Image_FeedTests: XCTestCase {
 
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.
