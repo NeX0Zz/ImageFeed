@@ -4,7 +4,7 @@ final class ProfileViewController: UIViewController {
     
     // MARK: - Properties
     
-    private var labelName: UILabel?
+    private var label: UILabel?
     private var label2: UILabel?
     private var label3: UILabel?
     
@@ -38,14 +38,14 @@ final class ProfileViewController: UIViewController {
         
         label.leadingAnchor.constraint(equalTo: imageView.leadingAnchor).isActive = true
         label.topAnchor.constraint(equalTo: imageView.bottomAnchor, constant: 18).isActive = true
-        self.labelName = label
+        self.label = label
         
         
         let label2 = UILabel()
         label2.text = "@ekaterina_nov"
         label2.translatesAutoresizingMaskIntoConstraints = false
         label2.textColor = UIColor(named: "YP Gray")
-        label2.font = UIFont.systemFont(ofSize: 13, weight: .bold)
+        label2.font = UIFont.systemFont(ofSize: 13)
         
         view.addSubview(label2)
         
@@ -57,7 +57,7 @@ final class ProfileViewController: UIViewController {
         label3.text = "Hello, world!"
         label3.translatesAutoresizingMaskIntoConstraints = false
         label3.textColor = UIColor(named: "YP White")
-        label3.font = UIFont.systemFont(ofSize: 13, weight: .bold)
+        label3.font = UIFont.systemFont(ofSize: 13)
         
         view.addSubview(label3)
         
