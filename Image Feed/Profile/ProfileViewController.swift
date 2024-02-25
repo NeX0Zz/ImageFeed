@@ -2,16 +2,20 @@ import UIKit
 
 final class ProfileViewController: UIViewController {
     
-    private var label: UILabel?
+    // MARK: - Properties
+    
+    private var labelName: UILabel?
     private var label2: UILabel?
     private var label3: UILabel?
     
+    // MARK: - Overrides funcs
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         imageView()
-        
     }
+    
+    // MARK: - funcs
     
     func imageView(){
         let profileImage = UIImage(named: "avatar")
@@ -34,7 +38,7 @@ final class ProfileViewController: UIViewController {
         
         label.leadingAnchor.constraint(equalTo: imageView.leadingAnchor).isActive = true
         label.topAnchor.constraint(equalTo: imageView.bottomAnchor, constant: 18).isActive = true
-        self.label = label
+        self.labelName = label
         
         
         let label2 = UILabel()
@@ -75,6 +79,8 @@ final class ProfileViewController: UIViewController {
         button.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -20).isActive = true
         button.centerYAnchor.constraint(equalTo: imageView.centerYAnchor).isActive = true
     }
+    
+    // MARK: - Gestures
     
     @objc
     private func didTapButton() {
