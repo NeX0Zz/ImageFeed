@@ -4,44 +4,44 @@ final class ProfileViewController: UIViewController {
     
     // MARK: - Properties
     
-    private var usernameLable: UILabel{
+    private lazy var usernameLable: UILabel = {
         let usernameLable = UILabel()
         usernameLable.text = "Екатерина Новикова"
         usernameLable.textColor = UIColor(named: "YP White")
         usernameLable.font = UIFont.systemFont(ofSize: 23, weight: .bold)
         return usernameLable
-    }
+    }()
 
-    private var userLabel: UILabel{
+    private var userLabel: UILabel = {
         let userLabel = UILabel()
         userLabel.text = "@ekaterina_nov"
         userLabel.textColor = UIColor(named: "YP Gray")
         userLabel.font = UIFont.systemFont(ofSize: 13)
         return userLabel
-    }
+    }()
     
-    private var anyLabel: UILabel{
+    private var anyLabel: UILabel = {
         let anyLabel = UILabel()
         anyLabel.text = "Hello, world!"
         anyLabel.textColor = UIColor(named: "YP White")
         anyLabel.font = UIFont.systemFont(ofSize: 13)
         return anyLabel
-    }
+    }()
     
-    private var imageView: UIImageView{
+    private var imageView: UIImageView = {
         let profileImage = UIImage(named: "avatar")
         let imageView = UIImageView(image: profileImage)
         return imageView
-    }
+    }()
     
-    private var button: UIButton{
+    private var button: UIButton = {
         let button = UIButton.systemButton(
             with: UIImage(systemName: "ipad.and.arrow.forward")!,
             target: self,
             action: #selector(Self.didTapButton))
         button.tintColor = .red
         return button
-    }
+    }()
     
     // MARK: - Overrides funcs
     
@@ -53,11 +53,6 @@ final class ProfileViewController: UIViewController {
     // MARK: - funcs
 
     func setup(){
-        var usernameLable = usernameLable
-        var userLabel = userLabel
-        var anyLabel = anyLabel
-        var imageView = imageView
-        var button = button
         
         [usernameLable, userLabel, anyLabel, button, imageView].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
