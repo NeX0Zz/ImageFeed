@@ -17,19 +17,6 @@ final class WebViewViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-//        var urlComponents = URLComponents(string: UnsplashAuthorizeURLString)!
-//        urlComponents.queryItems = [
-//            URLQueryItem(name: "client_id", value: Constants.accessKey),
-//            URLQueryItem(name: "redirect_uri", value: Constants.redirectURI),
-//            URLQueryItem(name: "response_type", value: "code"),
-//            URLQueryItem(name: "scope", value: Constants.accessScope)
-//        ]
-//        let url = urlComponents.url!
-//        
-//        let request = URLRequest(url: url)
-//        webView.load(request)
-        
         webView.navigationDelegate = self
         loadAuthView()
         updateProgress()
