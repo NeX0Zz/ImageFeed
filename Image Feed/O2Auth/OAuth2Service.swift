@@ -3,15 +3,16 @@ import Foundation
 final class OAuth2Service {
     
     static let shared = OAuth2Service()
+    private init(){}
     
     private let urlSession = URLSession.shared
     
     private (set) var authToken: String? {
         get {
-            return OAuth2TokenStorage().token
+            return OAuth2TokenStorage.shared.token
         }
         set {
-            OAuth2TokenStorage().token = newValue
+            OAuth2TokenStorage.shared.token = newValue
         }
     }
     
@@ -56,20 +57,6 @@ private extension OAuth2Service {
             httpMethod: "POST",
             baseURL: URL(string: "https://unsplash.com")!
         )
-    }
-    private struct OAuthTokenResponseBody: Decodable {
-        let accessToken: String
-        let tokenType: String
-        let scope: String
-        let createdAt: Int
-        
-        enum CodingKeys: String, CodingKey {
-            case accessToken = "access_token"
-            case tokenType = "token_type"
-            case scope
-            case createdAt = "created_at"
-        }
-        let url = URL(string: "https://api.unsplash.com/oauth/token")!
     }
 }
 

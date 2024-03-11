@@ -5,15 +5,10 @@ final class AuthViewController: UIViewController {
     // MARK: - Properties
     
     private let oauth2service = OAuth2Service.shared
-    var ShowWebViewSegueIdentifier = "ShowWebView"
+    private var ShowWebViewSegueIdentifier = "ShowWebView"
     weak var delegate: AuthViewControllerDelegate?
     
     // MARK: - Overrides funcs
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        //     configureBackButton()
-    }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == ShowWebViewSegueIdentifier {
