@@ -1,8 +1,14 @@
 import UIKit
+import Kingfisher
 
 final class ProfileViewController: UIViewController {
     
     // MARK: - Properties
+    
+    private let profileImageService = ProfileImageService.shared
+    private var profileService = ProfileService.shared
+    private var token = OAuth2TokenStorage.shared.token
+    private var profileImageServiceObserver: NSObjectProtocol?
     
     private lazy var usernameLable: UILabel = {
         let usernameLable = UILabel()
@@ -11,8 +17,8 @@ final class ProfileViewController: UIViewController {
         usernameLable.font = UIFont.systemFont(ofSize: 23, weight: .bold)
         return usernameLable
     }()
-
-    private var userLabel: UILabel = {
+    
+    private lazy var userLabel: UILabel = {
         let userLabel = UILabel()
         userLabel.text = "@ekaterina_nov"
         userLabel.textColor = UIColor(named: "YP Gray")
@@ -20,7 +26,7 @@ final class ProfileViewController: UIViewController {
         return userLabel
     }()
     
-    private var anyLabel: UILabel = {
+    private lazy var bioLabel: UILabel = {
         let anyLabel = UILabel()
         anyLabel.text = "Hello, world!"
         anyLabel.textColor = UIColor(named: "YP White")
@@ -28,13 +34,13 @@ final class ProfileViewController: UIViewController {
         return anyLabel
     }()
     
-    private var imageView: UIImageView = {
-        let profileImage = UIImage(named: "avatar")
+    private lazy var imageView: UIImageView = {
+        let profileImage = UIImage(named: "active")
         let imageView = UIImageView(image: profileImage)
         return imageView
     }()
     
-    private var button: UIButton = {
+    private lazy var button: UIButton = {
         let button = UIButton.systemButton(
             with: UIImage(systemName: "ipad.and.arrow.forward")!,
             target: self,
@@ -45,15 +51,59 @@ final class ProfileViewController: UIViewController {
     
     // MARK: - Overrides funcs
     
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        updateProfileDetails(profile: profileService.profile)
+        profileServiceImageObserver()
+        view.backgroundColor = UIColor(named: "YP Black")
+    }
+    
     override func loadView() {
         super.loadView()
         setup()
     }
-
+    
+    // MARK: - Private funcs
+    
+    private func profileServiceImageObserver() {
+        profileImageServiceObserver = NotificationCenter.default
+            .addObserver(
+                forName: ProfileImageService.didChangeNotification,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                guard let self = self else { return }
+                updateAvatar()
+            }
+        updateAvatar()
+    }
+    
+    private func updateAvatar() {
+        guard
+            let profileImageURL = profileImageService.avatarURL,
+            let url = URL(string: profileImageURL) else { return }
+        
+        let process = RoundCornerImageProcessor(cornerRadius: 61)
+        imageView.kf.setImage(with: url,
+                              placeholder: UIImage(named: "active"),
+                              options: [.processor(process)])
+        imageView.kf.indicatorType = .activity
+        imageView.layer.masksToBounds = true
+        imageView.layer.cornerRadius = 34
+    }
+    
+    private func updateProfileDetails(profile: Profile?) {
+        guard let profile = profile else { return }
+        self.usernameLable.text = profile.name
+        self.userLabel.text = profile.loginName
+        self.bioLabel.text = profile.bio
+        
+    }
+    
     // MARK: - funcs
-
+    
     func setup(){
-        [usernameLable, userLabel, anyLabel, button, imageView].forEach {
+        [usernameLable, userLabel, bioLabel, button, imageView].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview($0)
         }
@@ -67,8 +117,8 @@ final class ProfileViewController: UIViewController {
             usernameLable.topAnchor.constraint(equalTo: imageView.bottomAnchor, constant: 8),
             userLabel.leadingAnchor.constraint(equalTo: usernameLable.leadingAnchor),
             userLabel.topAnchor.constraint(equalTo: usernameLable.bottomAnchor, constant: 8),
-            anyLabel.leadingAnchor.constraint(equalTo: userLabel.leadingAnchor),
-            anyLabel.topAnchor.constraint(equalTo: userLabel.bottomAnchor, constant: 8),
+            bioLabel.leadingAnchor.constraint(equalTo: userLabel.leadingAnchor),
+            bioLabel.topAnchor.constraint(equalTo: userLabel.bottomAnchor, constant: 8),
             button.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -20),
             button.centerYAnchor.constraint(equalTo: imageView.centerYAnchor)
         ])

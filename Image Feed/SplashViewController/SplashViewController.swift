@@ -5,30 +5,77 @@ final class SplashViewController: UIViewController {
     // MARK: - Properties
     
     private let ShowAuthenticationScreenSegueIdentifier = "ShowAuthenticationScreen"
-    private let oauth2Service = OAuth2Service()
-    private let oauth2TokenStorage = OAuth2TokenStorage()
-
+    private let oAuth2Service = OAuth2Service.shared
+    private let oAuth2TokenStorage = OAuth2TokenStorage.shared
+    private let profileService = ProfileService.shared
+    private var profileImageService = ProfileImageService.shared
+    private lazy var splashScreenLogo: UIImageView = {
+        let image = UIImageView()
+        image.image = UIImage(named: "splash_screen_logo")
+        image.translatesAutoresizingMaskIntoConstraints = false
+        return image
+    }()
+    
+    // MARK: - Overrides funcs
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = UIColor(named: "YP Black")
+    }
+    
+    override func loadView() {
+        super.loadView()
+        setup()
+    }
+    
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-
-        if let token = OAuth2TokenStorage().token {
-            switchToTabBarController()
+        if let token = oAuth2TokenStorage.token {
+            fetchProfile(token: token)
         } else {
-            performSegue(withIdentifier: ShowAuthenticationScreenSegueIdentifier, sender: nil)
+            switchToAuthViewController()
         }
     }
-
-    // MARK: - Overrides funcs
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         setNeedsStatusBarAppearanceUpdate()
     }
-
+    
     override var preferredStatusBarStyle: UIStatusBarStyle {
         .lightContent
     }
-
+    
+    // MARK: - Private funcs
+    
+    private func setup(){
+        view.addSubview(splashScreenLogo)
+        NSLayoutConstraint.activate([
+            splashScreenLogo.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            splashScreenLogo.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            splashScreenLogo.heightAnchor.constraint(equalToConstant: 77),
+            splashScreenLogo.widthAnchor.constraint(equalToConstant: 74),
+        ])
+    }
+    
+    private func fetchProfile(token: String) {
+        UIBlockingProgressHUD.show()
+        profileService.fetchProfile(token) { [weak self] result in
+            UIBlockingProgressHUD.dismiss()
+            guard let self = self else { return }
+            switch result {
+            case .success:
+                guard let username = profileService.profile?.username else { return }
+                profileImageService.fetchProfileImageURL(username: username)  { _ in }
+                DispatchQueue.main.async {
+                    self.switchToTabBarController()
+                }
+            case .failure:
+                print("Error")
+            }
+        }
+    }
+    
     private func switchToTabBarController() {
         guard let window = UIApplication.shared.windows.first else { fatalError("Invalid Configuration") }
         let tabBarController = UIStoryboard(name: "Main", bundle: .main)
@@ -60,9 +107,20 @@ extension SplashViewController: AuthViewControllerDelegate {
             self.fetchOAuthToken(code)
         }
     }
-
+    
+    func switchToAuthViewController() {
+        let storyboard = UIStoryboard(name: "Main", bundle: .main).instantiateViewController(identifier: "AuthViewController")
+        guard let authViewController = storyboard as? AuthViewController else {
+            assertionFailure("Failed to show Authentication Screen")
+            return
+        }
+        authViewController.delegate = self
+        authViewController.modalPresentationStyle = .fullScreen
+        present(authViewController, animated: true)
+    }
+    
     private func fetchOAuthToken(_ code: String) {
-        oauth2Service.fetchOAuthToken(code) { [weak self] result in
+        oAuth2Service.fetchOAuthToken(code) { [weak self] result in
             guard let self = self else { return }
             switch result {
             case .success:
@@ -73,3 +131,4 @@ extension SplashViewController: AuthViewControllerDelegate {
         }
     }
 }
+
