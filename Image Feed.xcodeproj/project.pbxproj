@@ -138,6 +138,8 @@
 				7D9CFA4228DDEE7F00D971A7 /* AppDelegate.swift */,
 				7D9CFA4428DDEE7F00D971A7 /* SceneDelegate.swift */,
 				E6DCFD942B90ABAE003EA1CE /* Constants.swift */,
+				E6B499892BAEC1A6001EA00B /* TabBarController.swift */,
+				E67EF5552BA5985B0037CEAA /* UIBlockingProgressHUD.swift */,
 				E6501F7A2B9DB95B004821ED /* SplashViewController */,
 				E6BE99712B98921E00D79B94 /* O2Auth */,
 				E6DCFD982B90C542003EA1CE /* Auth */,
@@ -148,8 +150,6 @@
 				7D9CFA4B28DDEE8000D971A7 /* Assets.xcassets */,
 				7D9CFA4D28DDEE8000D971A7 /* LaunchScreen.storyboard */,
 				7D9CFA5028DDEE8000D971A7 /* Info.plist */,
-				E67EF5552BA5985B0037CEAA /* UIBlockingProgressHUD.swift */,
-				E6B499892BAEC1A6001EA00B /* TabBarController.swift */,
 			);
 			path = "Image Feed";
 			sourceTree = "<group>";

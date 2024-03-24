@@ -28,20 +28,20 @@ final class OAuth2Service {
             return
         }
         let task = object(for: request) {[weak self] result in
-               DispatchQueue.main.async {
-            guard let self = self else { return }
-            switch result {
-            case .success(let body):
-                let authToken = body.accessToken
-                self.authToken = authToken
-                completion(.success(authToken))
-                
-            case .failure(let error):
-                completion(.failure(error))
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                switch result {
+                case .success(let body):
+                    let authToken = body.accessToken
+                    self.authToken = authToken
+                    completion(.success(authToken))
+                    
+                case .failure(let error):
+                    completion(.failure(error))
+                }
+                self.task = nil
+                self.lastCode = nil
             }
-            self.task = nil
-            self.lastCode = nil
-              }
             
         }
         self.task = task
