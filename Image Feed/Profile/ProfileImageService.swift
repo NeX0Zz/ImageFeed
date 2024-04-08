@@ -8,10 +8,10 @@ struct UserResult: Codable {
     }
     
     struct ProfileImage: Codable {
-        let smallImage: [String:String]
+        let largeImage: [String:String]
         
         init(data: UserResult) {
-            self.smallImage = data.profileImage
+            self.largeImage = data.profileImage
         }
     }
 }
@@ -22,9 +22,7 @@ enum ProfileImageError: Error {
 }
 
 final class ProfileImageService {
-    
     private (set) var avatarURL: String?
-    private var token = OAuth2TokenStorage.shared.token
     private let urlSession = URLSession.shared
     private var task: URLSessionTask?
     static let didChangeNotification = Notification.Name(rawValue: "ProfileImageProviderDidChange")
@@ -35,6 +33,7 @@ final class ProfileImageService {
         assert(Thread.isMainThread)
         if avatarURL != nil { return }
         task?.cancel()
+        let token = OAuth2TokenStorage.shared.token
         guard let token = token else { return }
         let request = profileImageRequest(token: token, username: username)
         let task = urlSession.objectTask(for: request) { [weak self] (result: Result<UserResult, Error>) in
@@ -42,7 +41,7 @@ final class ProfileImageService {
             switch result {
             case .success(let body):
                 let avatarUrl = UserResult.ProfileImage(data: body)
-                avatarURL = avatarUrl.smallImage["large"]
+                avatarURL = avatarUrl.largeImage["large"]
                 completion(.success(self.avatarURL ?? ""))
                 NotificationCenter.default
                     .post(
@@ -65,5 +64,5 @@ private extension ProfileImageService {
         var request = URLRequest(url: url)
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         return request
-    }
+    } 
 }

@@ -45,7 +45,7 @@ extension AuthViewController: WebViewViewControllerDelegate {
     }
 }
 
-extension AuthViewController {
+private extension AuthViewController {
     private func showError() {
         let alertController = UIAlertController(title: "Что-то пошло не так",
                                                 message: "Не удалось войти в систему",

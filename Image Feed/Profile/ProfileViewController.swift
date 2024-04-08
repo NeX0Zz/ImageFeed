@@ -1,5 +1,7 @@
 import UIKit
+import WebKit
 import Kingfisher
+import SwiftKeychainWrapper
 
 final class ProfileViewController: UIViewController {
     
@@ -7,6 +9,7 @@ final class ProfileViewController: UIViewController {
     
     private let profileImageService = ProfileImageService.shared
     private var profileService = ProfileService.shared
+    private var profileLogoutService = ProfileLogoutService.shared
     private var token = OAuth2TokenStorage.shared.token
     private var profileImageServiceObserver: NSObjectProtocol?
     
@@ -124,15 +127,46 @@ final class ProfileViewController: UIViewController {
         ])
     }
     
-    // MARK: - Gestures
+    // MARK: - @objc
     
     @objc
     private func didTapButton() {
-        for view in view.subviews {
-            if view is UILabel {
-                view.removeFromSuperview()
+        let alertController = UIAlertController(title: "Пока, пока!",
+                                                message: "Уверены, что хотите выйти?",
+                                                preferredStyle: .alert)
+        let noAction = UIAlertAction(title: "Нет", style: .cancel, handler: nil)
+        let yesAction = UIAlertAction(title: "Да", style: .default) { [weak self] _ in
+            guard let self = self else { return }
+            KeychainWrapper.standard.removeAllKeys()
+            profileLogoutService.logout()
+        }
+        alertController.addAction(noAction)
+        alertController.addAction(yesAction)
+        present(alertController, animated: true)
+    }
+}
+
+final class ProfileLogoutService {
+    static let shared = ProfileLogoutService()
+    private init() {}
+    
+    func logout() {
+        cleanCookies()
+        switchToSplashViewController()
+    }
+    
+    private func switchToSplashViewController() {
+        let splashViewController = SplashViewController()
+        guard let window = UIApplication.shared.windows.first else { fatalError("Invalid Configuration") }
+        window.rootViewController = splashViewController
+    }
+    
+    private func cleanCookies() {
+        HTTPCookieStorage.shared.removeCookies(since: Date.distantPast)
+        WKWebsiteDataStore.default().fetchDataRecords(ofTypes: WKWebsiteDataStore.allWebsiteDataTypes()) { records in
+            records.forEach { record in
+                WKWebsiteDataStore.default().removeData(ofTypes: record.dataTypes, for: [record], completionHandler: {})
             }
         }
     }
 }
-
