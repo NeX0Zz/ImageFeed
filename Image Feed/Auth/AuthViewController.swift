@@ -6,16 +6,16 @@ final class AuthViewController: UIViewController {
     // MARK: - Properties
     
     private let oAuth2service = OAuth2Service.shared
-    private var ShowWebViewSegueIdentifier = "ShowWebView"
+    private let showWebViewSegueIdentifier = "ShowWebView"
     weak var delegate: AuthViewControllerDelegate?
     
     // MARK: - Overrides funcs
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == ShowWebViewSegueIdentifier {
+        if segue.identifier == showWebViewSegueIdentifier {
             guard
                 let webViewViewController = segue.destination as? WebViewViewController
-            else { fatalError("Failed to prepare for \(ShowWebViewSegueIdentifier)") }
+            else { fatalError("Failed to prepare for \(showWebViewSegueIdentifier)") }
             webViewViewController.delegate = self
         } else {
             super.prepare(for: segue, sender: sender)

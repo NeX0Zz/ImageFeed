@@ -1,16 +1,4 @@
 import Foundation
-
-struct Photo {
-    let id: String
-    let size: CGSize
-    let createdAt: Date?
-    let welcomeDescription: String?
-    let thumbImageURL: String
-    let largeImageURL: String
-    let fullImageUrl: String
-    let isLiked: Bool
-}
-
 struct PhotoResult: Decodable {
     let id: String
     let createdAt: String?
@@ -33,10 +21,6 @@ struct PhotoResult: Decodable {
         case description = "description"
         case urls = "urls"
     }
-}
-
-struct LikeResult: Decodable {
-    let photo: PhotoResult?
 }
 
 struct UrlsResult: Decodable {

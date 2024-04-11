@@ -22,19 +22,9 @@ final class ImagesListService {
                 guard let self = self else { return }
                 switch result {
                 case .success(let body):
-                    body.forEach { result in
-                        self.photos.append(
-                            Photo(
-                                id: result.id,
-                                size: CGSize(
-                                    width: result.width,
-                                    height: result.height),
-                                createdAt: self.dateFormatter.date(from:result.createdAt ?? ""),
-                                welcomeDescription: result.description,
-                                thumbImageURL: result.urls?.thumbImageURL ?? "",
-                                largeImageURL: result.urls?.largeImageURL ?? "",
-                                fullImageUrl: result.urls?.largeImageURL ?? "",
-                                isLiked: result.likedByUser ?? false))
+                    body[..<(body.count - 2)].forEach {
+                        let photo = self.convertToPhoto(from: $0)
+                        self.photos.append(photo)
                     }
                     self.lastLoadedPage = nextPage
                     NotificationCenter.default
@@ -94,7 +84,7 @@ final class ImagesListService {
 private extension ImagesListService {
     private func imageRequestToken(token: String, perPage: String, page: String) -> URLRequest {
         var request = URLRequest.makeHTTPRequest(
-            path: "/photos?page=\(page)&&per_page=\(perPage)",
+            path: "/photos?page=\(page)",
             httpMethod: "GET",
             baseURL: URL(string: "\(Constants.defaultBaseURL)")!)
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
@@ -117,5 +107,18 @@ private extension ImagesListService {
             baseURL: URL(string: "\(Constants.defaultBaseURL)")!)
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         return request
+    }
+    
+    private func convertToPhoto(from photoResult: PhotoResult) -> Photo {
+        let photo = Photo(
+            id: photoResult.id,
+            size: CGSize(width: photoResult.width,height: photoResult.height),
+            createdAt: self.dateFormatter.date(from:photoResult.createdAt ?? ""),
+            welcomeDescription: photoResult.description,
+            thumbImageURL: photoResult.urls?.thumbImageURL ?? "",
+            largeImageURL: photoResult.urls?.largeImageURL ?? "",
+            fullImageUrl: photoResult.urls?.largeImageURL ?? "",
+            isLiked: photoResult.likedByUser ?? false)
+        return photo
     }
 }

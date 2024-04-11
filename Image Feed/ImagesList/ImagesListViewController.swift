@@ -9,7 +9,7 @@ final class ImagesListViewController: UIViewController {
     
     // MARK: - Properties
     
-    var photos: [Photo] = []
+    private var photos: [Photo] = []
     private let imageListService = ImagesListService.shared
     private let showSingleImageSegueIdentifier = "ShowSingleImage"
     private lazy var dateFormatter: DateFormatter = {
@@ -25,7 +25,13 @@ final class ImagesListViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         tableView.contentInset = UIEdgeInsets(top: 12, left: 0, bottom: 12, right: 0)
-        NotificationCenter.default.addObserver(self, selector: #selector(updateTableViewAnimated), name: ImagesListService.didChangeNotification, object: nil)
+        NotificationCenter.default.addObserver(
+            forName: ImagesListService.didChangeNotification,
+            object: nil,
+            queue: .main) { [weak self] _ in
+                guard let self = self else { return }
+                updateTableViewAnimated()
+            }
         tableView.dataSource = self
         imageListService.fetchPhotosNextPage()
     }
@@ -68,18 +74,16 @@ extension ImagesListViewController {
             cell.cellImage.kf.setImage(with: url,placeholder: UIImage(named: "scribble.variable"),options: [])
             { [weak self] result in
                 guard let self = self else { return }
+                tableView.reloadRows(at: [indexPath], with: .automatic)
                 switch result {
-                case .success(_):
+                case .success:
                     if let created = photo.createdAt {
                         cell.dateLabel.text = self.dateFormatter.string(from: created)
                     } else {
                         cell.dateLabel.text = ""
                     }
-                    let isLiked = imageListService.photos[indexPath.row].isLiked == false
-                    let likeImage = isLiked ? UIImage(named: "like_button_on") : UIImage(named: "like_button_off")
-                    cell.likeButton.setImage(likeImage, for: .normal)
-                    cell.setIsLiked(photo.isLiked)
-                    tableView.reloadRows(at: [indexPath], with: .automatic)
+                    let isLikedd = imageListService.photos[indexPath.row].isLiked == false
+                    cell.setIsLiked(isLikedd)
                 case .failure(let error):
                     print(error)
                 }
@@ -88,7 +92,7 @@ extension ImagesListViewController {
         return cell
     }
     
-    @objc func updateTableViewAnimated() {
+     private func updateTableViewAnimated() {
         let oldCount = photos.count
         let newCount = imageListService.photos.count
         photos = imageListService.photos
@@ -121,7 +125,7 @@ extension ImagesListViewController: UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        if indexPath.row + 1 == photos.count {
+        if indexPath.row + 1 == imageListService.photos.count {
             imageListService.fetchPhotosNextPage()
         }
     }
@@ -161,3 +165,4 @@ extension ImagesListViewController: ImageListCellDelegate {
         }
     }
 }
+
