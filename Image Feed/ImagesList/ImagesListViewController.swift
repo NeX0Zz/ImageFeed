@@ -1,13 +1,9 @@
 import UIKit
 import Kingfisher
 
-final class ImagesListViewController: UIViewController {
+final class ImagesListViewController: UIViewController, ImageListCellDelegate {
     
-    // MARK: - Outlets
-    
-    @IBOutlet private var tableView: UITableView!
-    
-    // MARK: - Properties
+    @IBOutlet weak private var tableView: UITableView!
     
     private var photos: [Photo] = []
     private let imageListService = ImagesListService.shared
@@ -20,11 +16,8 @@ final class ImagesListViewController: UIViewController {
         return formatter
     }()
     
-    // MARK: - Overrides funcs
-    
     override func viewDidLoad() {
         super.viewDidLoad()
-        tableView.contentInset = UIEdgeInsets(top: 12, left: 0, bottom: 12, right: 0)
         NotificationCenter.default.addObserver(
             forName: ImagesListService.didChangeNotification,
             object: nil,
@@ -32,7 +25,6 @@ final class ImagesListViewController: UIViewController {
                 guard let self = self else { return }
                 updateTableViewAnimated()
             }
-        tableView.dataSource = self
         imageListService.fetchPhotosNextPage()
     }
     
@@ -47,7 +39,21 @@ final class ImagesListViewController: UIViewController {
     }
 }
 
-// MARK: - Extensions
+extension ImagesListViewController: UITableViewDelegate {
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        performSegue(withIdentifier: showSingleImageSegueIdentifier, sender: indexPath)
+    }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        let image = photos[indexPath.row]
+        let imageInsets = UIEdgeInsets(top: 4, left: 16, bottom: 4, right: 16)
+        let imageViewWidth = tableView.bounds.width - imageInsets.left - imageInsets.right
+        let imageWidth = image.size.width
+        let scale = imageViewWidth / imageWidth
+        let cellHeight = image.size.height * scale + imageInsets.top + imageInsets.bottom
+        return cellHeight
+    }
+}
 
 extension ImagesListViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -56,17 +62,18 @@ extension ImagesListViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: ImagesListCell.reuseIdentifier, for: indexPath)
-        cell.selectionStyle = .none
+        
         guard let imageListCell = cell as? ImagesListCell else {
             return UITableViewCell()
         }
+        imageListCell.delegate = self
         configCell(for: imageListCell, with: indexPath)
         return imageListCell
     }
 }
 
 extension ImagesListViewController {
-    func configCell(for cell: ImagesListCell, with indexPath: IndexPath) -> ImagesListCell {
+    func configCell(for cell: ImagesListCell, with indexPath: IndexPath) {
         cell.delegate = self
         let photo = photos[indexPath.row]
         if let url = URL(string: photo.thumbImageURL) {
@@ -74,7 +81,7 @@ extension ImagesListViewController {
             cell.cellImage.kf.setImage(with: url,placeholder: UIImage(named: "scribble.variable"),options: [])
             { [weak self] result in
                 guard let self = self else { return }
-                tableView.reloadRows(at: [indexPath], with: .automatic)
+                self.tableView.reloadRows(at: [indexPath], with: .automatic)
                 switch result {
                 case .success:
                     if let created = photo.createdAt {
@@ -89,39 +96,6 @@ extension ImagesListViewController {
                 }
             }
         }
-        return cell
-    }
-    
-     private func updateTableViewAnimated() {
-        let oldCount = photos.count
-        let newCount = imageListService.photos.count
-        photos = imageListService.photos
-        if oldCount != newCount {
-            tableView.performBatchUpdates {
-                let indexPaths = (oldCount..<newCount).map { i in
-                    IndexPath(row: i, section: 0)
-                }
-                tableView.insertRows(at: indexPaths, with: .automatic)
-            } completion: { _ in }
-        }
-    }
-}
-
-extension ImagesListViewController: UITableViewDelegate {
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        performSegue(withIdentifier: showSingleImageSegueIdentifier, sender: indexPath)
-    }
-    
-    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        guard let image = UIImage(named: "\(indexPath.row)") else {
-            return 0
-        }
-        let imageInsets = UIEdgeInsets(top: 4, left: 16, bottom: 4, right: 16)
-        let imageViewWidth = tableView.bounds.width - imageInsets.left - imageInsets.right
-        let imageWidth = image.size.width
-        let scale = imageViewWidth / imageWidth
-        let cellHeight = image.size.height * scale + imageInsets.top + imageInsets.bottom
-        return cellHeight
     }
     
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
@@ -129,8 +103,21 @@ extension ImagesListViewController: UITableViewDelegate {
             imageListService.fetchPhotosNextPage()
         }
     }
+    
+    func updateTableViewAnimated() {
+        let oldCount = photos.count
+        let newCount = imageListService.photos.count
+        photos = imageListService.photos
+        if oldCount != newCount {
+            tableView.performBatchUpdates{
+                let indexPaths = (oldCount..<newCount).map { i in IndexPath(row: i, section: 0) }
+                tableView.insertRows(at: indexPaths, with: .bottom)
+            } completion: { _ in }
+        }
+    }
 }
-extension ImagesListViewController: ImageListCellDelegate {
+
+extension ImagesListViewController {
     func imageListCellDidTapLike(_ cell: ImagesListCell) {
         guard let indexPath = tableView.indexPath(for: cell) else { return }
         let photo = photos[indexPath.row]
@@ -165,4 +152,3 @@ extension ImagesListViewController: ImageListCellDelegate {
         }
     }
 }
-

@@ -1,4 +1,5 @@
 import Foundation
+
 struct PhotoResult: Decodable {
     let id: String
     let createdAt: String?
