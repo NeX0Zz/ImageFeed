@@ -3,17 +3,29 @@ import WebKit
 import Kingfisher
 import SwiftKeychainWrapper
 
-final class ProfileViewController: UIViewController {
+protocol ProfileViewControllerProtocol: AnyObject {
+    var presenter: ProfileViewPresenterProtocol { get set }
+    var usernameLable: UILabel { get set }
+    var userLabel: UILabel { get set }
+    var bioLabel: UILabel { get set }
+    func updateAvatar()
+}
+
+final class ProfileViewController: UIViewController & ProfileViewControllerProtocol {
+    var presenter: ProfileViewPresenterProtocol = {
+        return ProfileViewPresenter()
+    }()
+
     
     // MARK: - Properties
-    
+   
     private let profileImageService = ProfileImageService.shared
     private var profileService = ProfileService.shared
     private var profileLogoutService = ProfileLogoutService.shared
     private var token = OAuth2TokenStorage.shared.token
     private var profileImageServiceObserver: NSObjectProtocol?
     
-    private lazy var usernameLable: UILabel = {
+     lazy var usernameLable: UILabel = {
         let usernameLable = UILabel()
         usernameLable.text = "Екатерина Новикова"
         usernameLable.textColor = UIColor(named: "YP White")
@@ -21,7 +33,7 @@ final class ProfileViewController: UIViewController {
         return usernameLable
     }()
     
-    private lazy var userLabel: UILabel = {
+     lazy var userLabel: UILabel = {
         let userLabel = UILabel()
         userLabel.text = "@ekaterina_nov"
         userLabel.textColor = UIColor(named: "YP Gray")
@@ -29,7 +41,7 @@ final class ProfileViewController: UIViewController {
         return userLabel
     }()
     
-    private lazy var bioLabel: UILabel = {
+     lazy var bioLabel: UILabel = {
         let anyLabel = UILabel()
         anyLabel.text = "Hello, world!"
         anyLabel.textColor = UIColor(named: "YP White")
@@ -56,8 +68,9 @@ final class ProfileViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        presenter.view = self
+        presenter.viewDidLoad()
         updateProfileDetails(profile: profileService.profile)
-        profileServiceImageObserver()
         view.backgroundColor = UIColor(named: "YP Black")
     }
     
@@ -68,20 +81,7 @@ final class ProfileViewController: UIViewController {
     
     // MARK: - Private funcs
     
-    private func profileServiceImageObserver() {
-        profileImageServiceObserver = NotificationCenter.default
-            .addObserver(
-                forName: ProfileImageService.didChangeNotification,
-                object: nil,
-                queue: .main
-            ) { [weak self] _ in
-                guard let self = self else { return }
-                updateAvatar()
-            }
-        updateAvatar()
-    }
-    
-    private func updateAvatar() {
+     func updateAvatar() {
         guard
             let profileImageURL = profileImageService.avatarURL,
             let url = URL(string: profileImageURL) else { return }
@@ -137,8 +137,7 @@ final class ProfileViewController: UIViewController {
         let noAction = UIAlertAction(title: "Нет", style: .cancel, handler: nil)
         let yesAction = UIAlertAction(title: "Да", style: .default) { [weak self] _ in
             guard let self = self else { return }
-            KeychainWrapper.standard.removeAllKeys()
-            profileLogoutService.logout()
+            presenter.exitProfile()
         }
         alertController.addAction(noAction)
         alertController.addAction(yesAction)
