@@ -9,6 +9,7 @@ final class ImagesListService {
     private let dateFormatter = ISO8601DateFormatter()
     private let urlSession = URLSession.shared
     private let oAuth2TokenStorage = OAuth2TokenStorage.shared
+    
     private init(){}
     
     func fetchPhotosNextPage() {
@@ -40,6 +41,13 @@ final class ImagesListService {
         }
         self.task = task
         task.resume()
+    }
+    
+    func ioio(){
+        assert(Thread.isMainThread)
+        task?.cancel()
+        guard task == nil else { return }
+        guard let token = oAuth2TokenStorage.token else { return }
     }
     
     func changeLike(photoId: String,isLike: Bool,_ completion: @escaping (Result<Bool, Error>) -> Void) {

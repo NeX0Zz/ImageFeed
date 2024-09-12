@@ -22,6 +22,7 @@ final class ProfileViewPresenter: ProfileViewPresenterProtocol {
     func exitProfile() {
         oAuth2TokenStorage.token = nil
         profileLogoutService.logout()
+        ProfileService.shared.clean()
         KeychainWrapper.standard.removeAllKeys()
         guard let window = UIApplication.shared.windows.first else {
             fatalError("Invalid Configuration") }
