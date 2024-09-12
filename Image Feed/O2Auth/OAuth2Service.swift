@@ -1,12 +1,9 @@
 import Foundation
 
 final class OAuth2Service {
-    
     static let shared = OAuth2Service()
     private init(){}
-    
     private let urlSession = URLSession.shared
-    
     private (set) var authToken: String? {
         get {
             return OAuth2TokenStorage.shared.token
@@ -15,27 +12,44 @@ final class OAuth2Service {
             OAuth2TokenStorage.shared.token = newValue
         }
     }
+    private var lastCode: String?
+    private var task: URLSessionTask?
     
     func fetchOAuthToken(_ code: String, completion: @escaping (Result<String, Error>) -> Void) {
-        let request = authTokenRequest(code: code)
-        let task = object(for: request) {[weak self] result in
-            guard let self = self else { return }
-            switch result {
-            case .success(let body):
-                let authToken = body.accessToken
-                self.authToken = authToken
-                completion(.success(authToken))
-                
-            case .failure(let error):
-                completion(.failure(error))
-            }
+        assert(Thread.isMainThread)
+        guard lastCode != code else {
+            completion(.failure(NetworkError.urlSessionError))
+            return
         }
+        task?.cancel()
+        lastCode = code
+        guard let request = authTokenRequest(code: code) else {
+            completion(.failure(NetworkError.urlSessionError))
+            return
+        }
+        let task = object(for: request) {[weak self] result in
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                switch result {
+                case .success(let body):
+                    let authToken = body.accessToken
+                    self.authToken = authToken
+                    completion(.success(authToken))
+                    
+                case .failure(let error):
+                    completion(.failure(error))
+                }
+                self.task = nil
+                self.lastCode = nil
+            }
+            
+        }
+        self.task = task
         task.resume()
     }
 }
 
 private extension OAuth2Service {
-    
     private func object(for request: URLRequest, completion: @escaping (Result<OAuthTokenResponseBody, Error>) -> Void) -> URLSessionTask {
         let decoder = JSONDecoder()
         return urlSession.data(for: request) { (result: Result<Data, Error>) in
@@ -46,7 +60,7 @@ private extension OAuth2Service {
         }
     }
     
-    private func authTokenRequest(code: String) -> URLRequest {
+    private func authTokenRequest(code: String) -> URLRequest? {
         URLRequest.makeHTTPRequest(
             path: "/oauth/token"
             + "?client_id=\(Constants.accessKey)"
