@@ -17,8 +17,7 @@ final class ImagesListViewController: UIViewController, ImageListCellDelegate & 
     private let showSingleImageSegueIdentifier = "ShowSingleImage"
     private lazy var dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
-        formatter.dateStyle = .long
-        formatter.timeStyle = .none
+        formatter.dateFormat = "dd M yyyy"
         formatter.locale = Locale(identifier: "ru_RU")
         return formatter
     }()

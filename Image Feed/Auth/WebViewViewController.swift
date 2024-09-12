@@ -10,16 +10,19 @@ protocol WebViewViewControllerProtocol: AnyObject {
 
 final class WebViewViewController: UIViewController & WebViewViewControllerProtocol{
     
+    // MARK: - Properties
+    
+    var presenter: WebViewPresenterProtocol?
+    weak var delegate: WebViewViewControllerDelegate?
+    
     // MARK: - Outlets
     
     @IBOutlet private var progressView: UIProgressView!
     @IBOutlet private weak var webView: WKWebView!
     
-    // MARK: - Properties
+    // MARK: - Private Properties
     
-    var presenter: WebViewPresenterProtocol?
     private var estimatedProgressObservation: NSKeyValueObservation?
-    weak var delegate: WebViewViewControllerDelegate?
     
     
     // MARK: - Overrides Methods
@@ -46,25 +49,13 @@ final class WebViewViewController: UIViewController & WebViewViewControllerProto
             forKeyPath: #keyPath(WKWebView.estimatedProgress),
             options: .new,
             context: nil)
-       
+        
     }
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         webView.removeObserver(self, forKeyPath: #keyPath(WKWebView.estimatedProgress), context: nil)
     }
-    
-    // MARK: - Private Methods
-    
-    private func estimatedProgresObservation() {
-                estimatedProgressObservation = webView.observe(
-                    \.estimatedProgress,
-                     options: [],
-                     changeHandler: { [weak self] _, _ in
-                         guard let self = self else { return }
-                         presenter?.didUpdateProgressValue(webView.estimatedProgress)
-                     })
-            }
     
     // MARK: - Methods
     
@@ -73,11 +64,23 @@ final class WebViewViewController: UIViewController & WebViewViewControllerProto
     }
     
     func setProgressValue(_ newValue: Float) {
-        progressView.progress = newValue
+        progressView.setProgress(newValue, animated: true)
     }
     
     func setProgressHidden(_ isHidden: Bool) {
         progressView.isHidden = isHidden
+    }
+    
+    // MARK: - Private Methods
+    
+    private func estimatedProgresObservation() {
+        estimatedProgressObservation = webView.observe(
+            \.estimatedProgress,
+             options: [],
+             changeHandler: { [weak self] _, _ in
+                 guard let self = self else { return }
+                 presenter?.didUpdateProgressValue(webView.estimatedProgress)
+             })
     }
     
     // MARK: - IB Actions
@@ -91,22 +94,11 @@ final class WebViewViewController: UIViewController & WebViewViewControllerProto
 
 extension WebViewViewController: WKNavigationDelegate {
     private func code(from navigationAction: WKNavigationAction) -> String? {
-//        if let url = navigationAction.request.url {
-//            print(url)
-//            return presenter?.code(from: url)
-//        }
-//        return nil
-        if
-            let url = navigationAction.request.url,
-            let urlComponents = URLComponents(string: url.absoluteString),
-            urlComponents.path == "/oauth/authorize/native",
-            let items = urlComponents.queryItems,
-            let codeItem = items.first(where: { $0.name == "code" })
-        {
-            return codeItem.value
-        } else {
-            return nil
+        if let url = navigationAction.request.url {
+            print(url)
+            return presenter?.code(from: url)
         }
+        return nil
     }
     
     func webView(_ webView: WKWebView,decidePolicyFor navigationAction: WKNavigationAction,decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
