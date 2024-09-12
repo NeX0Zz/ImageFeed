@@ -1,11 +1,18 @@
 import UIKit
 import Kingfisher
 
-final class ImagesListViewController: UIViewController, ImageListCellDelegate {
+protocol ImagesListViewControllerProtocol: AnyObject {
+    var presenter: ImagesListViewPresenterProtocol? {get set}
+    func updateTableViewAnimated()
+    var photos: [Photo] {get set}
+}
+
+final class ImagesListViewController: UIViewController, ImageListCellDelegate & ImagesListViewControllerProtocol {
     
     @IBOutlet weak private var tableView: UITableView!
     
-    private var photos: [Photo] = []
+    private var imagesListServiceObserver: NSObjectProtocol?
+    var photos: [Photo] = []
     private let imageListService = ImagesListService.shared
     private let showSingleImageSegueIdentifier = "ShowSingleImage"
     private lazy var dateFormatter: DateFormatter = {
@@ -15,17 +22,14 @@ final class ImagesListViewController: UIViewController, ImageListCellDelegate {
         formatter.locale = Locale(identifier: "ru_RU")
         return formatter
     }()
+    lazy var presenter: ImagesListViewPresenterProtocol? = {
+        return ImageListViewPresenter()
+    }()
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        NotificationCenter.default.addObserver(
-            forName: ImagesListService.didChangeNotification,
-            object: nil,
-            queue: .main) { [weak self] _ in
-                guard let self = self else { return }
-                updateTableViewAnimated()
-            }
-        imageListService.fetchPhotosNextPage()
+        presenter?.view = self
+        presenter?.viewDidLoad()
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -123,7 +127,7 @@ extension ImagesListViewController {
         let photo = photos[indexPath.row]
         let isLiked = photo.isLiked
         UIBlockingProgressHUD.show()
-        imageListService.changeLike(photoId: photo.id, isLike: isLiked) { [weak self] result in
+        presenter?.photoLike(photoId: photo.id, isLike: photo.isLiked) { [weak self] result in
             guard let self = self else { return }
             DispatchQueue.main.async {
                 switch result {
